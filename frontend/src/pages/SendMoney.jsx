@@ -11,6 +11,51 @@ export const SendMoney = () => {
   const [amount, setAmount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const handleTransfer = async () => {
+    try {
+      setLoading(true);
+      if (!amount || amount <= 0) {
+        toast.error("Please enter a valid amount");
+        return;
+      }
+
+      await axios.post(
+        "http://localhost:3000/api/v1/account/transfer",
+        {
+          to: id,
+          amount: parseInt(amount),
+        },
+        {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        }
+      );
+
+      // Store the current user's ID in localStorage if not already there
+      if (!localStorage.getItem("userId")) {
+        const response = await axios.get("http://localhost:3000/api/v1/user/profile", {
+          headers: {
+            Authorization: "Bearer " + localStorage.getItem("token"),
+          },
+        });
+        localStorage.setItem("userId", response.data._id);
+      }
+
+      toast.success("Transfer successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message ||
+        (error.code === "ERR_NETWORK"
+          ? "Unable to connect to server. Please try again."
+          : "Transfer failed. Please try again.");
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex justify-center h-screen bg-gray-100">
       <div className="h-full flex flex-col justify-center">
@@ -44,42 +89,10 @@ export const SendMoney = () => {
                 />
               </div>
               <button
-                onClick={async () => {
-                  try {
-                    setLoading(true);
-                    if (!amount || amount <= 0) {
-                      toast.error("Please enter a valid amount");
-                      return;
-                    }
-                    
-                    await axios.post(
-                      "http://localhost:3000/api/v1/account/transfer",
-                      {
-                        to: id,
-                        amount: parseInt(amount)
-                      },
-                      {
-                        headers: {
-                          Authorization: "Bearer " + localStorage.getItem("token")
-                        }
-                      }
-                    );
-                    
-                    toast.success("Transfer successful!");
-                    navigate("/dashboard");
-                  } catch (error) {
-                    const errorMessage = error.response?.data?.message || 
-                      (error.code === 'ERR_NETWORK' ? 
-                        "Unable to connect to server. Please try again." : 
-                        "Transfer failed. Please try again.");
-                    toast.error(errorMessage);
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
+                onClick={handleTransfer}
                 disabled={loading}
                 className={`justify-center rounded-md text-sm font-medium ring-offset-background transition-colors h-10 px-4 py-2 w-full bg-green-500 text-white ${
-                  loading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-600'
+                  loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"
                 }`}
               >
                 {loading ? "Processing..." : "Initiate Transfer"}

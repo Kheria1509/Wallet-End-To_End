@@ -48,6 +48,46 @@ export const Signup = () => {
     return true;
   };
 
+  const handleSignup = async () => {
+    if (!validateInputs()) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/user/signup",
+        {
+          username,
+          password,
+          firstName,
+          lastName,
+          phone,
+          acceptedTerms
+        }
+      );
+
+      localStorage.setItem("token", response.data.token);
+
+      // Get and store user ID
+      const profileResponse = await axios.get("http://localhost:3000/api/v1/user/profile", {
+        headers: {
+          Authorization: "Bearer " + response.data.token
+        }
+      });
+      localStorage.setItem("userId", profileResponse.data._id);
+
+      toast.success("Account created successfully!");
+      navigate("/dashboard");
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 
+        (error.code === 'ERR_NETWORK' ? 
+          "Unable to connect to server. Please try again." : 
+          "Signup failed. Please try again.");
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-blue-100 to-purple-100 bg-opacity-80">
       <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
@@ -59,17 +99,17 @@ export const Signup = () => {
           <div className="space-y-4 mt-4">
             <InputBox
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="John"
+              placeholder="Aman"
               label={"First Name"}
             />
             <InputBox
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Doe"
+              placeholder="Kheria"
               label={"Last Name"}
             />
             <InputBox
               onChange={(e) => setUserName(e.target.value)}
-              placeholder="john@example.com"
+              placeholder="aman@example.com"
               label={"Email"}
               type="email"
             />
@@ -112,35 +152,7 @@ export const Signup = () => {
 
           <div className="mt-6">
             <Button
-              onClick={async () => {
-                if (!validateInputs()) return;
-                
-                try {
-                  setLoading(true);
-                  const response = await axios.post(
-                    "http://localhost:3000/api/v1/user/signup",
-                    {
-                      username,
-                      password,
-                      firstName,
-                      lastName,
-                      phone,
-                      acceptedTerms
-                    }
-                  );
-                  localStorage.setItem("token", response.data.token);
-                  toast.success("Account created successfully!");
-                  navigate("/dashboard");
-                } catch (error) {
-                  const errorMessage = error.response?.data?.message || 
-                    (error.code === 'ERR_NETWORK' ? 
-                      "Unable to connect to server. Please try again." : 
-                      "Signup failed. Please try again.");
-                  toast.error(errorMessage);
-                } finally {
-                  setLoading(false);
-                }
-              }}
+              onClick={handleSignup}
               label={loading ? "Creating account..." : "Sign Up"}
               disabled={loading || !acceptedTerms}
             />

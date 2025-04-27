@@ -192,4 +192,121 @@ router.get("/bulk", async (req, res) => {
   });
 });
 
+// Add profile route
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching profile" });
+  }
+});
+
+router.put("/profile", authMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, password, firstName, lastName, phone } = req.body;
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // If changing password, verify current password
+    if (currentPassword && password) {
+      const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Current password is incorrect" });
+      }
+
+      // Validate new password
+      const passwordValidation = validatePasswordStrength(password);
+      if (!passwordValidation.isValid) {
+        return res.status(400).json({ message: passwordValidation.message });
+      }
+
+      // Hash new password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    // Update other fields if provided
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (phone) user.phone = phone;
+
+    await user.save();
+    res.json({ message: "Profile updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating profile" });
+  }
+});
+
+// Password reset routes
+router.post("/request-reset", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ username: email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date();
+    expiry.setHours(expiry.getHours() + 1); // OTP expires in 1 hour
+
+    user.resetToken = {
+      code: otp,
+      expiry: expiry
+    };
+    await user.save();
+
+    // TODO: In production, send email with OTP
+    // For now, just log it to console
+    console.log(`Reset OTP for ${email}: ${otp}`);
+
+    res.json({ message: "Reset code sent successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error sending reset code" });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({ username: email });
+
+    if (!user || !user.resetToken || !user.resetToken.code) {
+      return res.status(400).json({ message: "Invalid reset request" });
+    }
+
+    if (user.resetToken.code !== otp) {
+      return res.status(400).json({ message: "Invalid reset code" });
+    }
+
+    if (new Date() > user.resetToken.expiry) {
+      return res.status(400).json({ message: "Reset code has expired" });
+    }
+
+    // Validate new password
+    const passwordValidation = validatePasswordStrength(newPassword);
+    if (!passwordValidation.isValid) {
+      return res.status(400).json({ message: passwordValidation.message });
+    }
+
+    // Update password and clear reset token
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetToken = undefined;
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+  } catch (error) {
+    res.status(500).json({ message: "Error resetting password" });
+  }
+});
+
 module.exports = router;

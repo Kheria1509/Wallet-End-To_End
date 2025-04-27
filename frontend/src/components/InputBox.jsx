@@ -1,19 +1,44 @@
 import { useState } from "react";
 
-export function InputBox({ label, placeholder, onChange, type = "text" }) {
+export function InputBox({ 
+  label, 
+  placeholder, 
+  onChange, 
+  type = "text",
+  value,
+  error,
+  disabled = false,
+  required = false
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div>
-      <div className="text-sm font-medium text-left py-2">{label}</div>
+      <div className="flex justify-between">
+        <div className="text-sm font-medium text-left py-2">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </div>
+        {error && (
+          <div className="text-sm text-red-500 py-2">{error}</div>
+        )}
+      </div>
       <div className="relative">
         <input
           onChange={onChange}
           placeholder={placeholder}
           type={type === "password" ? (showPassword ? "text" : "password") : type}
-          className="w-full px-2 py-1 border rounded border-slate-200"
+          value={value}
+          disabled={disabled}
+          className={`w-full px-2 py-1 border rounded ${
+            error ? 'border-red-500' : 'border-slate-200'
+          } ${
+            disabled 
+              ? 'bg-gray-100 text-gray-500 cursor-not-allowed' 
+              : 'bg-white hover:border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+          }`}
         />
-        {type === "password" && (
+        {type === "password" && !disabled && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}

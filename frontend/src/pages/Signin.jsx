@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BottomWarning } from "../components/BottomWarning";
 import { Button } from "../components/Button";
 import { Heading } from "../components/Heading";
@@ -11,19 +11,82 @@ import toast from "react-hot-toast";
 export const Signin = () => {
   const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check for saved credentials
+    const savedUsername = localStorage.getItem('remembered_username');
+    if (savedUsername) {
+      setUserName(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
+
   const validateInputs = () => {
-    if (!username.trim() || !username.includes("@")) {
-      toast.error("Please enter a valid email");
-      return false;
+    const newErrors = {};
+    
+    if (!username.trim()) {
+      newErrors.username = "Email is required";
+    } else if (!username.includes("@")) {
+      newErrors.username = "Please enter a valid email address";
     }
+    
     if (!password) {
-      toast.error("Password is required");
-      return false;
+      newErrors.password = "Password is required";
     }
-    return true;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateInputs()) return;
+    
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/user/signin",
+        {
+          username,
+          password,
+        }
+      );
+
+      // Handle remember me
+      if (rememberMe) {
+        localStorage.setItem('remembered_username', username);
+      } else {
+        localStorage.removeItem('remembered_username');
+      }
+
+      localStorage.setItem("token", response.data.token);
+      
+      // Get and store user ID
+      const profileResponse = await axios.get("http://localhost:3000/api/v1/user/profile", {
+        headers: {
+          Authorization: "Bearer " + response.data.token
+        }
+      });
+      localStorage.setItem("userId", profileResponse.data._id);
+      
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } catch (error) {
+      if (error.response?.status === 429) {
+        toast.error("Too many login attempts. Please try again later.");
+      } else {
+        const errorMessage = error.response?.data?.message || 
+          (error.code === 'ERR_NETWORK' ? 
+            "Unable to connect to server. Please try again." : 
+            "Invalid email or password");
+        toast.error(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,60 +98,67 @@ export const Signin = () => {
           <SubHeading label={"Enter your credentials to access your account"} />
           
           <div className="space-y-4 mt-4">
-            <InputBox
-              onChange={(e) => {
-                setUserName(e.target.value);
-              }}
-              placeholder="john@example.com"
-              label={"Email"}
-              type="email"
-            />
-            <InputBox
-              onChange={(e) => {
-                setPassword(e.target.value);
-              }}
-              placeholder="Enter your password"
-              label={"Password"}
-              type="password"
-            />
+            <div>
+              <InputBox
+                onChange={(e) => {
+                  setUserName(e.target.value);
+                  if (errors.username) {
+                    setErrors({ ...errors, username: "" });
+                  }
+                }}
+                value={username}
+                placeholder="aman@example.com"
+                label={"Email"}
+                type="email"
+              />
+              {errors.username && (
+                <div className="text-red-500 text-sm text-left mt-1">{errors.username}</div>
+              )}
+            </div>
+
+            <div>
+              <InputBox
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) {
+                    setErrors({ ...errors, password: "" });
+                  }
+                }}
+                value={password}
+                placeholder="Enter your password"
+                label={"Password"}
+                type="password"
+              />
+              {errors.password && (
+                <div className="text-red-500 text-sm text-left mt-1">{errors.password}</div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                />
+                <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
+                  Remember me
+                </label>
+              </div>
+              <button
+                onClick={() => navigate("/forgot-password")}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
+                Forgot password?
+              </button>
+            </div>
           </div>
 
           <div className="mt-6">
             <Button 
-              onClick={async () => {
-                if (!validateInputs()) return;
-                
-                try {
-                  setLoading(true);
-                  const response = await axios.post(
-                    "http://localhost:3000/api/v1/user/signin",
-                    {
-                      username,
-                      password,
-                    },
-                    {
-                      headers: {
-                        'Content-Type': 'application/json'
-                      }
-                    }
-                  );
-                  localStorage.setItem("token", response.data.token);
-                  toast.success("Login successful!");
-                  navigate("/dashboard");
-                } catch (error) {
-                  if (error.response?.status === 429) {
-                    toast.error("Too many login attempts. Please try again later.");
-                  } else {
-                    const errorMessage = error.response?.data?.message || 
-                      (error.code === 'ERR_NETWORK' ? 
-                        "Unable to connect to server. Please try again." : 
-                        "Invalid email or password");
-                    toast.error(errorMessage);
-                  }
-                } finally {
-                  setLoading(false);
-                }
-              }}
+              onClick={handleSubmit}
               label={loading ? "Signing in..." : "Sign in"}
               disabled={loading}
             />
