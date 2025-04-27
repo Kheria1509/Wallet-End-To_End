@@ -15,6 +15,8 @@ const signupBody = zod.object({
   firstName: zod.string(),
   lastName: zod.string(),
   password: zod.string(),
+  phone: zod.string().min(10),
+  acceptedTerms: zod.boolean()
 });
 
 router.post("/signup", async (req, res) => {
@@ -23,6 +25,12 @@ router.post("/signup", async (req, res) => {
     if (!success) {
       return res.status(400).json({
         message: "Invalid input format",
+      });
+    }
+
+    if (!req.body.acceptedTerms) {
+      return res.status(400).json({
+        message: "You must accept the legal agreements",
       });
     }
 
@@ -45,6 +53,8 @@ router.post("/signup", async (req, res) => {
       password: hashedPassword,
       firstName: req.body.firstName,
       lastName: req.body.lastName,
+      phone: req.body.phone,
+      acceptedTerms: req.body.acceptedTerms
     });
 
     const userId = user._id;

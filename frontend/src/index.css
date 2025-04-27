@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.bg-grid-pattern {
+    background-color: #f0f4f8; /* Soft light background */
+    background-image: 
+      linear-gradient(to right, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(226, 232, 240, 0.5) 1px, transparent 1px),
+      linear-gradient(135deg, #c3dafe 0%, #a5b4fc 100%); /* Soft diagonal gradient overlay */
+    background-blend-mode: overlay;
+    background-size: 20px 20px;
+    animation: moveBackground 30s linear infinite; /* smooth drifting */
+    backdrop-filter: blur(2px); /* subtle blur if over any bg */
+  }
+  
+  /* Keyframes for slow movement */
+  @keyframes moveBackground {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 40px 40px;
+    }
+  }
+  
+.bg-white{
+    width: 100%;
+}
+.flex.flex-col.justify-center.relative.z-10 {
+    width: 500px;
+}

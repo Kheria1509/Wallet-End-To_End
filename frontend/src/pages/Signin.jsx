@@ -27,28 +27,33 @@ export const Signin = () => {
   };
 
   return (
-    <div className="bg-slate-300 h-screen flex justify-center">
-      <div className="flex flex-col justify-center">
-        <div className="rounded-lg bg-white w-80 text-center p-2 h-max px-4">
+    <div className="min-h-screen flex justify-center items-center bg-gradient-to-r from-blue-100 to-purple-100 bg-opacity-80">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10 pointer-events-none"></div>
+      <div className="flex flex-col justify-center relative z-10">
+        <div className="rounded-xl bg-white w-96 text-center p-6 shadow-2xl">
           <Heading label={"Sign in"} />
           <SubHeading label={"Enter your credentials to access your account"} />
-          <InputBox
-            onChange={(e) => {
-              setUserName(e.target.value);
-            }}
-            placeholder="john@example.com"
-            label={"Email"}
-            type="email"
-          />
-          <InputBox
-            onChange={(e) => {
-              setPassword(e.target.value);
-            }}
-            placeholder="Enter your password"
-            label={"Password"}
-            type="password"
-          />
-          <div className="pt-4">
+          
+          <div className="space-y-4 mt-4">
+            <InputBox
+              onChange={(e) => {
+                setUserName(e.target.value);
+              }}
+              placeholder="john@example.com"
+              label={"Email"}
+              type="email"
+            />
+            <InputBox
+              onChange={(e) => {
+                setPassword(e.target.value);
+              }}
+              placeholder="Enter your password"
+              label={"Password"}
+              type="password"
+            />
+          </div>
+
+          <div className="mt-6">
             <Button 
               onClick={async () => {
                 if (!validateInputs()) return;
@@ -88,9 +93,10 @@ export const Signin = () => {
               disabled={loading}
             />
           </div>
+          
           <BottomWarning
             label={"Don't have an account?"}
-            buttonText={"Sign up"}
+            buttonText={"Create Account"}
             to={"/signup"}
           />
         </div>

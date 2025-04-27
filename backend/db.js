@@ -32,6 +32,20 @@ const userSchema = new mongoose.Schema({
     trim: true,
     maxLength: 50,
   },
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  acceptedTerms: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 const accountSchema = new mongoose.Schema({
