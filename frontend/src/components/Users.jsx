@@ -9,34 +9,67 @@ export const Users = () => {
     const [users, setUsers] = useState([]);
     const [filter, setFilter] = useState("");
     const [loading, setLoading] = useState(true);
+    const [pagination, setPagination] = useState({
+        total: 0,
+        page: 1,
+        pages: 1
+    });
+    const [loadingMore, setLoadingMore] = useState(false);
 
-    useEffect(() => {
-        const fetchUsers = async () => {
-            try {
+    const fetchUsers = async (page = 1, append = false) => {
+        try {
+            if (append) {
+                setLoadingMore(true);
+            } else {
                 setLoading(true);
-                const response = await axios.get(
-                    `http://localhost:3000/api/v1/user/bulk?filter=${filter}`
-                );
-                // Filter out the current user from the list
-                const currentUserId = localStorage.getItem("userId");
-                const filteredUsers = response.data.user.filter(
-                    (user) => user._id !== currentUserId
-                );
-                setUsers(filteredUsers);
-            } catch (error) {
-                toast.error("Error fetching users");
-            } finally {
+            }
+            
+            const response = await axios.get(
+                `http://localhost:3000/api/v1/user/bulk?filter=${filter}&page=${page}&limit=10`
+            );
+            
+            setUsers(prev => append ? [...prev, ...response.data.users] : response.data.users);
+            setPagination(response.data.pagination);
+        } catch (error) {
+            toast.error("Error fetching users");
+        } finally {
+            if (append) {
+                setLoadingMore(false);
+            } else {
                 setLoading(false);
             }
-        };
+        }
+    };
 
-        // Add a small delay to avoid too many requests while typing
+    useEffect(() => {
         const timeoutId = setTimeout(() => {
-            fetchUsers();
+            fetchUsers(1, false);
         }, 300);
 
         return () => clearTimeout(timeoutId);
     }, [filter]);
+
+    const loadMore = () => {
+        if (pagination.page < pagination.pages) {
+            fetchUsers(pagination.page + 1, true);
+        }
+    };
+
+    const LoadingSkeleton = () => (
+        <div className="animate-pulse space-y-4">
+            <div className="h-12 bg-gray-100 rounded-xl w-full"></div>
+            {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex items-center space-x-4 p-3">
+                    <div className="h-12 w-12 bg-gray-200 rounded-full"></div>
+                    <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                        <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+                    </div>
+                    <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
+                </div>
+            ))}
+        </div>
+    );
 
     if (loading) {
         return (
@@ -44,19 +77,7 @@ export const Users = () => {
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-semibold text-gray-800">Users</h2>
                 </div>
-                <div className="animate-pulse space-y-4">
-                    <div className="h-12 bg-gray-100 rounded-xl w-full"></div>
-                    {[...Array(5)].map((_, i) => (
-                        <div key={i} className="flex items-center space-x-4 p-3">
-                            <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse"></div>
-                            <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-                                <div className="h-3 bg-gray-100 rounded w-1/2"></div>
-                            </div>
-                            <div className="h-10 w-28 bg-gray-200 rounded-lg"></div>
-                        </div>
-                    ))}
-                </div>
+                <LoadingSkeleton />
             </div>
         );
     }
@@ -69,7 +90,7 @@ export const Users = () => {
                     <p className="text-sm text-gray-500">Send money to your friends</p>
                 </div>
                 <div className="bg-blue-50 rounded-full px-4 py-2 text-sm text-blue-600 font-medium">
-                    {users.length} {users.length === 1 ? 'user' : 'users'} available
+                    {pagination.total} {pagination.total === 1 ? 'user' : 'users'} available
                 </div>
             </div>
             
@@ -110,9 +131,33 @@ export const Users = () => {
                         )}
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
-                        {users.map((user) => <User key={user._id} user={user} />)}
-                    </div>
+                    <>
+                        <div className="divide-y divide-gray-100">
+                            {users.map((user) => <User key={user._id} user={user} />)}
+                        </div>
+                        
+                        {pagination.page < pagination.pages && (
+                            <div className="pt-4">
+                                <button
+                                    onClick={loadMore}
+                                    disabled={loadingMore}
+                                    className="w-full py-3 bg-gray-50 hover:bg-gray-100 text-gray-600 font-medium rounded-xl transition-colors duration-200"
+                                >
+                                    {loadingMore ? (
+                                        <div className="flex items-center justify-center">
+                                            <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            Loading more users...
+                                        </div>
+                                    ) : (
+                                        'Load More Users'
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

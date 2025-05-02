@@ -30,3 +30,6 @@
 .flex.flex-col.justify-center.relative.z-10 {
     width: 500px;
 }
+.shape{
+  width: 500px !important;
+}

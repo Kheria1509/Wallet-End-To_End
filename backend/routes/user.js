@@ -162,34 +162,51 @@ router.put("/", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/bulk", async (req, res) => {
+router.get("/bulk", authMiddleware, async (req, res) => {
   const filter = req.query.filter || "";
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-  const users = await User.find({
-    $or: [
-      {
-        firstName: {
-          $regex: filter,
-          $options: "i",
+  try {
+    // Add current user to exclusion
+    const query = {
+      _id: { $ne: req.userId }, // Exclude current user
+      $or: [
+        {
+          firstName: {
+            $regex: filter,
+            $options: "i",
+          },
         },
-      },
-      {
-        lastName: {
-          $regex: filter,
-          $options: "i",
+        {
+          lastName: {
+            $regex: filter,
+            $options: "i",
+          },
         },
-      },
-    ],
-  });
+      ],
+    };
 
-  res.json({
-    user: users.map((user) => ({
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      _id: user._id,
-    })),
-  });
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .skip(skip)
+        .limit(limit)
+        .select('username firstName lastName _id'),
+      User.countDocuments(query)
+    ]);
+
+    res.json({
+      users,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users" });
+  }
 });
 
 // Add profile route

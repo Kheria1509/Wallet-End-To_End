@@ -17,15 +17,29 @@ router.get("/balance", authMiddleware, async (req, res) => {
 
 router.get("/transactions", authMiddleware, async (req, res) => {
   try {
-    const transactions = await Transaction.find({
-      $or: [{ senderId: req.userId }, { receiverId: req.userId }]
-    })
-    .sort({ timestamp: -1 })
-    .limit(10)
-    .populate('senderId', 'firstName lastName')
-    .populate('receiverId', 'firstName lastName');
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-    res.json({ transactions });
+    const [transactions, total] = await Promise.all([
+      Transaction.find({
+        $or: [{ senderId: req.userId }, { receiverId: req.userId }]
+      })
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('senderId', 'firstName lastName')
+      .populate('receiverId', 'firstName lastName'),
+      
+      Transaction.countDocuments({
+        $or: [{ senderId: req.userId }, { receiverId: req.userId }]
+      })
+    ]);
+
+    res.json({ 
+      transactions,
+      hasMore: total > skip + transactions.length
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching transactions" });
   }
