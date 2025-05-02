@@ -7,11 +7,12 @@ import { Profile } from "./pages/Profile";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import { NotificationProvider } from "./context/NotificationContext";
 import "./utils/auth"; // Import auth interceptors
 
 function App() {
   return (
-    <>
+    <NotificationProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/signin" />} />
@@ -62,7 +63,7 @@ function App() {
           },
         }}
       />
-    </>
+    </NotificationProvider>
   );
 }
 

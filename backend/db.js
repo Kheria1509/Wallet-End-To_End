@@ -89,12 +89,43 @@ const transactionSchema = new mongoose.Schema({
   }
 });
 
+const notificationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ['DEBIT', 'CREDIT']
+  },
+  amount: {
+    type: Number,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  read: {
+    type: Boolean,
+    default: false
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const Account = mongoose.model("Account", accountSchema);
 const User = mongoose.model("User", userSchema);
 const Transaction = mongoose.model("Transaction", transactionSchema);
+const Notification = mongoose.model("Notification", notificationSchema);
 
 module.exports = {
   User,
   Account,
-  Transaction
+  Transaction,
+  Notification
 };

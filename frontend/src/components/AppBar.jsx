@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Avatar } from "./Avatar";
+import { NotificationBell } from "./NotificationBell";
 import axios from "axios";
 
 export const Appbar = () => {
@@ -42,6 +43,7 @@ export const Appbar = () => {
                 <Link to="/dashboard" className="hover:text-gray-600">
                     Dashboard
                 </Link>
+                <NotificationBell />
                 <Link to="/profile" className="flex items-center hover:text-gray-600">
                     <Avatar
                         name={`${profile.firstName} ${profile.lastName}`}

@@ -1,6 +1,6 @@
 const express = require("express");
 const { authMiddleware } = require("../middleware");
-const { Account, Transaction, User } = require("../db");
+const { Account, Transaction, User, Notification } = require("../db");
 const { default: mongoose } = require("mongoose");
 
 const router = express.Router();
@@ -52,6 +52,13 @@ router.post("/transfer", authMiddleware, async (req, res) => {
   try {
     const { amount, to } = req.body;
 
+    if (!amount || amount <= 0) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: "Invalid amount",
+      });
+    }
+
     const account = await Account.findOne({ userId: req.userId }).session(session);
     if (!account || account.balance < amount) {
       await session.abortTransaction();
@@ -68,31 +75,71 @@ router.post("/transfer", authMiddleware, async (req, res) => {
       });
     }
 
+    // Get user details for notification messages
+    const [sender, receiver] = await Promise.all([
+      User.findById(req.userId).session(session),
+      User.findById(to).session(session)
+    ]);
+
+    if (!sender || !receiver) {
+      await session.abortTransaction();
+      return res.status(400).json({
+        message: "Invalid sender or receiver",
+      });
+    }
+
     // Update balances
-    await Account.updateOne(
-      { userId: req.userId },
-      { $inc: { balance: -amount } }
-    ).session(session);
-    await Account.updateOne(
-      { userId: to },
-      { $inc: { balance: amount } }
-    ).session(session);
+    await Promise.all([
+      Account.updateOne(
+        { userId: req.userId },
+        { $inc: { balance: -amount } }
+      ).session(session),
+      Account.updateOne(
+        { userId: to },
+        { $inc: { balance: amount } }
+      ).session(session)
+    ]);
 
     // Record the transaction
-    await Transaction.create([{
-      senderId: req.userId,
-      receiverId: to,
-      amount: amount
-    }], { session });
+    const transaction = await Transaction.create(
+      [{
+        senderId: req.userId,
+        receiverId: to,
+        amount: amount
+      }],
+      { session, ordered: true }
+    );
+
+    // Create notifications for both sender and receiver
+    const notifications = await Notification.create(
+      [
+        {
+          userId: req.userId,
+          type: 'DEBIT',
+          amount: amount,
+          message: `₹${amount} sent to ${receiver.firstName} ${receiver.lastName}`
+        },
+        {
+          userId: to,
+          type: 'CREDIT',
+          amount: amount,
+          message: `₹${amount} received from ${sender.firstName} ${sender.lastName}`
+        }
+      ],
+      { session, ordered: true }
+    );
 
     await session.commitTransaction();
     res.json({
       message: "Transfer successful",
+      transaction: transaction[0],
+      notifications
     });
   } catch (error) {
+    console.error("Transfer error:", error);
     await session.abortTransaction();
     res.status(500).json({
-      message: "Transfer failed",
+      message: "Transfer failed: " + (error.message || "Unknown error")
     });
   } finally {
     session.endSession();
