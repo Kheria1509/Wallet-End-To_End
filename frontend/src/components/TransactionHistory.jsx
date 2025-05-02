@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { TransactionFilters } from "./TransactionFilters";
+import { ExportButton } from "./ExportButton";
 
 export const TransactionHistory = () => {
     const [transactions, setTransactions] = useState([]);
@@ -8,6 +10,26 @@ export const TransactionHistory = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [activeFilters, setActiveFilters] = useState({
+        startDate: null,
+        endDate: null,
+        minAmount: null,
+        maxAmount: null
+    });
+
+    const buildQueryString = (pageNum, filters) => {
+        const params = new URLSearchParams({
+            page: pageNum,
+            limit: 10
+        });
+
+        if (filters.startDate) params.append('startDate', filters.startDate);
+        if (filters.endDate) params.append('endDate', filters.endDate);
+        if (filters.minAmount !== null) params.append('minAmount', filters.minAmount);
+        if (filters.maxAmount !== null) params.append('maxAmount', filters.maxAmount);
+
+        return params.toString();
+    };
 
     const fetchTransactions = async (pageNum = 1, append = false) => {
         try {
@@ -17,7 +39,8 @@ export const TransactionHistory = () => {
                 setLoading(true);
             }
 
-            const response = await axios.get(`http://localhost:3000/api/v1/account/transactions?page=${pageNum}&limit=10`);
+            const queryString = buildQueryString(pageNum, activeFilters);
+            const response = await axios.get(`http://localhost:3000/api/v1/account/transactions?${queryString}`);
             
             // Filter out self-transactions
             const currentUserId = localStorage.getItem('userId');
@@ -45,7 +68,12 @@ export const TransactionHistory = () => {
         // Refresh transactions every 30 seconds
         const interval = setInterval(() => fetchTransactions(), 30000);
         return () => clearInterval(interval);
-    }, []);
+    }, [activeFilters]); // Re-fetch when filters change
+
+    const handleApplyFilters = (filters) => {
+        setActiveFilters(filters);
+        setPage(1); // Reset to first page when filters change
+    };
 
     const loadMore = () => {
         if (hasMore && !loadingMore) {
@@ -96,16 +124,21 @@ export const TransactionHistory = () => {
                     <h2 className="text-2xl font-semibold text-gray-800">Recent Transactions</h2>
                     <p className="text-sm text-gray-500 mt-1">Your latest financial activities</p>
                 </div>
-                <button 
-                    onClick={() => fetchTransactions()}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Refresh
-                </button>
+                <div className="flex items-center space-x-4">
+                    <ExportButton transactions={transactions} />
+                    <button 
+                        onClick={() => fetchTransactions()}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
             </div>
+
+            <TransactionFilters onApplyFilters={handleApplyFilters} />
             
             {transactions.length === 0 ? (
                 <div className="text-center py-12">
@@ -114,8 +147,12 @@ export const TransactionHistory = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                         </svg>
                     </div>
-                    <p className="text-gray-500 text-lg mb-2">No transactions yet</p>
-                    <p className="text-sm text-gray-400">Your transactions will appear here</p>
+                    <p className="text-gray-500 text-lg mb-2">No transactions found</p>
+                    <p className="text-sm text-gray-400">
+                        {Object.values(activeFilters).some(v => v !== null)
+                            ? "Try adjusting your filters"
+                            : "Your transactions will appear here"}
+                    </p>
                 </div>
             ) : (
                 <>
