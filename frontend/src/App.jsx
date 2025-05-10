@@ -5,10 +5,10 @@ import { Dashboard } from "./pages/Dashboard";
 import { SendMoney } from "./pages/SendMoney";
 import { Profile } from "./pages/Profile";
 import { ForgotPassword } from "./pages/ForgotPassword";
+import { RecurringTransfers } from "./pages/RecurringTransfers";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { NotificationProvider } from "./context/NotificationContext";
-import { RecurringTransfers } from "./components/RecurringTransfers";
 import "./utils/auth"; // Import auth interceptors
 
 function App() {

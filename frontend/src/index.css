@@ -45,3 +45,9 @@
 .export{
   width: 80px !important;
 }
+.notification{
+  width: 300px !important;
+}
+.recurring{
+  padding-top: 40px !important;
+}

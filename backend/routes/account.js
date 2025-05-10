@@ -56,11 +56,11 @@ router.get("/transactions", authMiddleware, async (req, res) => {
 
     const [transactions, total] = await Promise.all([
       Transaction.find(filterQuery)
-        .sort({ timestamp: -1 })
-        .skip(skip)
-        .limit(limit)
-        .populate('senderId', 'firstName lastName')
-        .populate('receiverId', 'firstName lastName'),
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('senderId', 'firstName lastName')
+      .populate('receiverId', 'firstName lastName'),
       
       Transaction.countDocuments(filterQuery)
     ]);
@@ -165,21 +165,21 @@ router.post("/transfer", authMiddleware, async (req, res) => {
     // Update balances
     await Promise.all([
       Account.updateOne(
-        { userId: req.userId },
-        { $inc: { balance: -amount } }
+      { userId: req.userId },
+      { $inc: { balance: -amount } }
       ).session(session),
       Account.updateOne(
-        { userId: to },
-        { $inc: { balance: amount } }
+      { userId: to },
+      { $inc: { balance: amount } }
       ).session(session)
     ]);
 
     // Record the transaction
     const transaction = await Transaction.create(
       [{
-        senderId: req.userId,
-        receiverId: to,
-        amount: amount
+      senderId: req.userId,
+      receiverId: to,
+      amount: amount
       }],
       { session, ordered: true }
     );
