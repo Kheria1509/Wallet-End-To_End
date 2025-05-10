@@ -1,5 +1,5 @@
 const express = require("express");
-const { authMiddleware } = require("../middleware");
+const { authMiddleware } = require("../middleware.config");
 const { Account, Transaction, User, Notification } = require("../db");
 const { default: mongoose } = require("mongoose");
 
