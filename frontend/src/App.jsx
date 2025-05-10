@@ -8,6 +8,7 @@ import { ForgotPassword } from "./pages/ForgotPassword";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { NotificationProvider } from "./context/NotificationContext";
+import { RecurringTransfers } from "./components/RecurringTransfers";
 import "./utils/auth"; // Import auth interceptors
 
 function App() {
@@ -40,6 +41,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recurring"
+            element={
+              <ProtectedRoute>
+                <RecurringTransfers />
               </ProtectedRoute>
             }
           />

@@ -17,7 +17,7 @@ export const NotificationProvider = ({ children }) => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/notifications', {
+      const response = await axios.get('http://localhost:3000/api/v1/notification', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -37,7 +37,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.patch(`http://localhost:3000/api/v1/notifications/${notificationId}/read`, {}, {
+      await axios.patch(`http://localhost:3000/api/v1/notification/${notificationId}/read`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -50,7 +50,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch('http://localhost:3000/api/v1/notifications/read-all', {}, {
+      await axios.patch('http://localhost:3000/api/v1/notification/read-all', {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

@@ -118,14 +118,62 @@ const notificationSchema = new mongoose.Schema({
   }
 });
 
+const recurringTransferSchema = new mongoose.Schema({
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  receiverId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: 1
+  },
+  frequency: {
+    type: String,
+    required: true,
+    enum: ['DAILY', 'WEEKLY', 'MONTHLY']
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date
+  },
+  lastExecuted: {
+    type: Date
+  },
+  description: {
+    type: String,
+    maxLength: 100
+  },
+  status: {
+    type: String,
+    enum: ['ACTIVE', 'PAUSED', 'COMPLETED', 'FAILED'],
+    default: 'ACTIVE'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const Account = mongoose.model("Account", accountSchema);
 const User = mongoose.model("User", userSchema);
 const Transaction = mongoose.model("Transaction", transactionSchema);
 const Notification = mongoose.model("Notification", notificationSchema);
+const RecurringTransfer = mongoose.model("RecurringTransfer", recurringTransferSchema);
 
 module.exports = {
   User,
   Account,
   Transaction,
-  Notification
+  Notification,
+  RecurringTransfer
 };

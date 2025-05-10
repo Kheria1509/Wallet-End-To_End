@@ -14,6 +14,9 @@ app.use(express.urlencoded({ extended: true }));
 // API routes
 app.use("/api/v1", rootRouter);
 
+// Start recurring transfer scheduler
+require('./scripts/recurringTransferScheduler');
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
