@@ -45,13 +45,9 @@ router.post('/', authMiddleware, async (req, res) => {
 router.get('/', authMiddleware, async (req, res) => {
     try {
         const transfers = await RecurringTransfer.find({
-            $or: [
-                { senderId: req.userId },
-                { receiverId: req.userId }
-            ]
+            senderId: req.userId
         })
-        .populate('senderId', 'firstName lastName')
-        .populate('receiverId', 'firstName lastName')
+        .populate('receiverId', 'firstName lastName username')
         .sort({ createdAt: -1 });
 
         res.json(transfers);

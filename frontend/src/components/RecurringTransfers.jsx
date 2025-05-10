@@ -224,7 +224,10 @@ export function RecurringTransfers() {
     return (
         <div className="p-4 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Recurring Transfers</h2>
+                <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Outgoing Recurring Transfers</h2>
+                    <p className="text-sm text-gray-600 mt-1">Manage your scheduled outgoing recurring payments</p>
+                </div>
                 <Button 
                     onClick={showForm ? handleCancel : () => setShowForm(true)}
                     className={showForm ? "bg-gray-500 hover:bg-gray-600" : ""}
@@ -258,6 +261,9 @@ export function RecurringTransfers() {
             {showForm && (
                 <div className="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
                     <h3 className="text-lg font-semibold mb-4 text-gray-700">Schedule New Recurring Transfer</h3>
+                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 text-sm text-blue-700">
+                        <p>Set up an automatic recurring transfer to someone. The amount will be automatically sent based on your chosen frequency.</p>
+                    </div>
                     <form onSubmit={handleSubmit}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="relative">
@@ -379,7 +385,7 @@ export function RecurringTransfers() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    <p className="mt-2 text-gray-500">Loading transfers...</p>
+                    <p className="mt-2 text-gray-500">Loading your recurring transfers...</p>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -408,6 +414,11 @@ export function RecurringTransfers() {
                                         <span className="font-medium">Period:</span> {formatDate(transfer.startDate)}
                                         {transfer.endDate ? ` to ${formatDate(transfer.endDate)}` : ' (no end date)'}
                                     </div>
+                                    {transfer.lastExecuted && (
+                                        <p className="text-sm text-gray-700 mb-1">
+                                            <span className="font-medium">Last Transfer:</span> {formatDate(transfer.lastExecuted)}
+                                        </p>
+                                    )}
                                     {transfer.description && (
                                         <p className="text-sm text-gray-700 mt-2 bg-gray-50 p-2 rounded">
                                             <span className="font-medium">Note:</span> {transfer.description}
@@ -452,7 +463,7 @@ export function RecurringTransfers() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
                             </svg>
                             <h3 className="text-lg font-medium text-gray-900 mb-1">No recurring transfers</h3>
-                            <p className="text-gray-500 mb-4">You haven't set up any recurring transfers yet.</p>
+                            <p className="text-gray-500 mb-4">You haven't set up any outgoing recurring transfers yet.</p>
                             <Button onClick={() => setShowForm(true)}>Schedule Your First Transfer</Button>
                         </div>
                     )}
