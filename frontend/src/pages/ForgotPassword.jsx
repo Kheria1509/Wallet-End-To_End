@@ -24,7 +24,7 @@ export const ForgotPassword = () => {
 
         try {
             setLoading(true);
-            await axios.post("http://localhost:3000/api/v1/user/request-reset", {
+            await axios.post("https://wallet-end-to-end-backend.vercel.app/api/v1/user/request-reset", {
                 email
             });
             toast.success("Reset code sent to your email");
@@ -49,7 +49,7 @@ export const ForgotPassword = () => {
 
         try {
             setLoading(true);
-            await axios.post("http://localhost:3000/api/v1/user/reset-password", {
+            await axios.post("https://wallet-end-to-end-backend.vercel.app/api/v1/user/reset-password", {
                 email,
                 otp,
                 newPassword

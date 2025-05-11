@@ -48,7 +48,7 @@ export const Signin = () => {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:3000/api/v1/user/signin",
+        "https://wallet-end-to-end-backend.vercel.app/api/v1/user/signin",
         {
           username,
           password,
@@ -65,7 +65,7 @@ export const Signin = () => {
       localStorage.setItem("token", response.data.token);
       
       // Get and store user ID
-      const profileResponse = await axios.get("http://localhost:3000/api/v1/user/profile", {
+      const profileResponse = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", {
         headers: {
           Authorization: "Bearer " + response.data.token
         }

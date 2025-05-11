@@ -18,7 +18,7 @@ export const Appbar = () => {
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/api/v1/user/profile");
+                const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile");
                 setProfile(response.data);
             } catch (error) {
                 console.error("Error fetching user profile:", error);

@@ -25,7 +25,7 @@ export const Users = () => {
             }
             
             const response = await axios.get(
-                `http://localhost:3000/api/v1/user/bulk?filter=${filter}&page=${page}&limit=10`
+                `https://wallet-end-to-end-backend.vercel.app/api/v1/user/bulk?filter=${filter}&page=${page}&limit=10`
             );
             
             setUsers(prev => append ? [...prev, ...response.data.users] : response.data.users);

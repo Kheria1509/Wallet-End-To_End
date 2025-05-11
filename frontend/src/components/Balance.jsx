@@ -8,7 +8,7 @@ export const Balance = () => {
 
     const fetchBalance = async () => {
         try {
-            const response = await axios.get("http://localhost:3000/api/v1/account/balance");
+            const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/account/balance");
             setBalance(response.data.balance);
         } catch (error) {
             toast.error("Error fetching balance");

@@ -50,7 +50,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            const response = await axios.get(`http://localhost:3000/api/v1/user/bulk?filter=${searchTerm}`, {
+            const response = await axios.get(`https://wallet-end-to-end-backend.vercel.app/api/v1/user/bulk?filter=${searchTerm}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data.users || []);
@@ -78,7 +78,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            const response = await axios.get('http://localhost:3000/api/v1/recurring', {
+            const response = await axios.get('https://wallet-end-to-end-backend.vercel.app/api/v1/recurring', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTransfers(response.data);
@@ -123,7 +123,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.post('http://localhost:3000/api/v1/recurring', formData, {
+            await axios.post('https://wallet-end-to-end-backend.vercel.app/api/v1/recurring', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSuccess('Recurring transfer scheduled successfully');
@@ -166,7 +166,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.patch(`http://localhost:3000/api/v1/recurring/${transferId}/status`, 
+            await axios.patch(`https://wallet-end-to-end-backend.vercel.app/api/v1/recurring/${transferId}/status`, 
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` }}
             );
@@ -193,7 +193,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.delete(`http://localhost:3000/api/v1/recurring/${transferId}`, {
+            await axios.delete(`https://wallet-end-to-end-backend.vercel.app/api/v1/recurring/${transferId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchTransfers();

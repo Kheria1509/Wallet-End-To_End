@@ -37,7 +37,7 @@ export const SendMoney = () => {
       }
 
       await axios.post(
-        "http://localhost:3000/api/v1/account/transfer",
+        "https://wallet-end-to-end-backend.vercel.app/api/v1/account/transfer",
         {
           to: id,
           amount: parseInt(amount),
@@ -51,7 +51,7 @@ export const SendMoney = () => {
 
       // Store the current user's ID in localStorage if not already there
       if (!localStorage.getItem("userId")) {
-        const response = await axios.get("http://localhost:3000/api/v1/user/profile", {
+        const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
           },

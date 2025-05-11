@@ -17,7 +17,7 @@ export const NotificationProvider = ({ children }) => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/v1/notification', {
+      const response = await axios.get('https://wallet-end-to-end-backend.vercel.app/api/v1/notification', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -37,7 +37,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.patch(`http://localhost:3000/api/v1/notification/${notificationId}/read`, {}, {
+      await axios.patch(`https://wallet-end-to-end-backend.vercel.app/api/v1/notification/${notificationId}/read`, {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -50,7 +50,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch('http://localhost:3000/api/v1/notification/read-all', {}, {
+      await axios.patch('https://wallet-end-to-end-backend.vercel.app/api/v1/notification/read-all', {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }

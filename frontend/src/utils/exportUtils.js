@@ -11,7 +11,7 @@ const fetchTransactionsForExport = async (filters = {}) => {
         if (filters.minAmount) params.append('minAmount', filters.minAmount);
         if (filters.maxAmount) params.append('maxAmount', filters.maxAmount);
 
-        const response = await axios.get(`http://localhost:3000/api/v1/account/transactions/export?${params.toString()}`, {
+        const response = await axios.get(`https://wallet-end-to-end-backend.vercel.app/api/v1/account/transactions/export?${params.toString()}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }

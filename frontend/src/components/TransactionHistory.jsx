@@ -40,7 +40,7 @@ export const TransactionHistory = () => {
             }
 
             const queryString = buildQueryString(pageNum, activeFilters);
-            const response = await axios.get(`http://localhost:3000/api/v1/account/transactions?${queryString}`);
+            const response = await axios.get(`https://wallet-end-to-end-backend.vercel.app/api/v1/account/transactions?${queryString}`);
             
             // Filter out self-transactions
             const currentUserId = localStorage.getItem('userId');

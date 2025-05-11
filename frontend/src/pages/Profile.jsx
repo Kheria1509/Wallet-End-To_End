@@ -26,7 +26,7 @@ export const Profile = () => {
 
     const fetchProfile = async () => {
         try {
-            const response = await axios.get("http://localhost:3000/api/v1/user/profile");
+            const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile");
             setProfile(response.data);
         } catch (error) {
             toast.error("Failed to load profile");
@@ -57,7 +57,7 @@ export const Profile = () => {
                 updateData.password = newPassword;
             }
 
-            await axios.put("http://localhost:3000/api/v1/user/profile", updateData);
+            await axios.put("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", updateData);
             toast.success("Profile updated successfully");
             setIsEditing(false);
             setCurrentPassword("");
