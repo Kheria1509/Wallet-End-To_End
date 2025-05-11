@@ -15,10 +15,5 @@
       "src": "/(.*)",
       "dest": "index.js"
     }
-  ],
-  "functions": {
-    "backend/middleware/edgeMiddleware.js": {
-      "runtime": "edge"
-    }
-  }
-} 
+  ]
+}
