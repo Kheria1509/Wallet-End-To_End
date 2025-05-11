@@ -5,14 +5,19 @@ const rootRouter = require("./routes/index");
 
 const app = express();
 
-// CORS middleware
+// Enable CORS
 app.use(cors());
 
-// Body parsing middleware
+// Parse JSON and URL-encoded bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API routes
+// Health check or landing route
+app.get("/", (req, res) => {
+  res.send("API is running ✅");
+});
+
+// Mount your API routes under /api/v1
 app.use("/api/v1", rootRouter);
 
 // Start recurring transfer scheduler
@@ -26,7 +31,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// For local development
+// Only listen locally if not in production (Vercel handles serverless export)
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
@@ -34,5 +39,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// Export for Vercel
+// Export the app for Vercel serverless
 module.exports = app;
