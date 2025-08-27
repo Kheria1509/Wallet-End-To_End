@@ -11,27 +11,18 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'terser',
+    minify: 'esbuild', // Use esbuild instead of terser for faster builds
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
-          axios: ['axios'],
-          ui: ['react-hot-toast', 'react-icons']
-        },
-        // Optimize chunk file names
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+          utils: ['axios', 'react-hot-toast']
+        }
       }
     },
-    // Increase chunk size warning limit
-    chunkSizeWarningLimit: 1000,
-    // Enable compression
-    reportCompressedSize: true
+    chunkSizeWarningLimit: 1000
   },
-  // Optimize deps
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', 'axios']
   }
