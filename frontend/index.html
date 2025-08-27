@@ -2,13 +2,65 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./public/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wallet End to End</title>
+    <meta name="description" content="Wallet End to End - Digital Payment Platform" />
+    <meta name="theme-color" content="#4F46E5" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Wallet - Digital Payment Platform</title>
+    
+    <!-- Loading styles to prevent flash of unstyled content -->
+    <style>
+      #root {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f4f6;
+        border-top: 3px solid #4F46E5;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      .loading-text {
+        color: #6B7280;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 14px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* Hide loading when app loads */
+      #root:not(:empty) .loading-container {
+        display: none;
+      }
+    </style>
   </head>
   <body>
-
-    <div id="root"></div>
-    <script type="module" src="./src/main.jsx"></script>
+    <div id="root">
+      <!-- Loading fallback -->
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Wallet...</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
