@@ -9,6 +9,7 @@ import 'react-phone-input-2/lib/style.css';
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { getEndpointUrl, API_CONFIG } from "../config/api";
 
 export const Signup = () => {
   const [firstName, setFirstName] = useState("");
@@ -50,11 +51,11 @@ export const Signup = () => {
 
   const handleSignup = async () => {
     if (!validateInputs()) return;
-    
+
     try {
       setLoading(true);
       const response = await axios.post(
-        "https://wallet-end-to-end-backend.vercel.app/api/v1/user/signup",
+        getEndpointUrl('USER_SIGNUP'),
         {
           username,
           password,
@@ -68,21 +69,27 @@ export const Signup = () => {
       localStorage.setItem("token", response.data.token);
 
       // Get and store user ID
-      const profileResponse = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", {
-        headers: {
-          Authorization: "Bearer " + response.data.token
+      const profileResponse = await axios.get(
+        getEndpointUrl('USER_PROFILE'),
+        {
+          headers: {
+            Authorization: "Bearer " + response.data.token
+          }
         }
-      });
+      );
       localStorage.setItem("userId", profileResponse.data._id);
 
       toast.success("Account created successfully!");
       navigate("/dashboard");
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-        (error.code === 'ERR_NETWORK' ? 
-          "Unable to connect to server. Please try again." : 
-          "Signup failed. Please try again.");
+      const errorMessage =
+        error.response?.data?.message ||
+        (error.code === "ERR_NETWORK"
+          ? "Unable to connect to server. Please try again."
+          : "Signup failed. Please try again.");
       toast.error(errorMessage);
+      console.log("API_BASE_URL =", API_CONFIG.BASE_URL);
+
     } finally {
       setLoading(false);
     }
@@ -95,7 +102,7 @@ export const Signup = () => {
         <div className="rounded-xl bg-white w-96 text-center p-6 shadow-2xl">
           <Heading label={"Create Account"} />
           <SubHeading label={"Enter your information to create an account"} />
-          
+
           <div className="space-y-4 mt-4">
             <InputBox
               onChange={(e) => setFirstName(e.target.value)}
@@ -114,18 +121,20 @@ export const Signup = () => {
               type="email"
             />
             <div>
-              <div className="text-sm font-medium text-left py-2">Phone Number</div>
+              <div className="text-sm font-medium text-left py-2">
+                Phone Number
+              </div>
               <PhoneInput
-                country={'in'}
+                country={"in"}
                 value={phone}
                 onChange={setPhone}
                 containerClass="w-full"
                 inputStyle={{
-                  width: '100%',
-                  height: '38px',
-                  fontSize: '14px',
-                  borderRadius: '0.375rem',
-                  borderColor: '#E2E8F0'
+                  width: "100%",
+                  height: "38px",
+                  fontSize: "14px",
+                  borderRadius: "0.375rem",
+                  borderColor: "#E2E8F0"
                 }}
               />
             </div>
@@ -135,7 +144,7 @@ export const Signup = () => {
               placeholder="Enter a strong password"
               label={"Password"}
             />
-            
+
             <div className="flex items-center space-x-2 mt-4">
               <input
                 type="checkbox"
@@ -144,7 +153,10 @@ export const Signup = () => {
                 onChange={(e) => setAcceptedTerms(e.target.checked)}
                 className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
               />
-              <label htmlFor="terms" className="text-sm text-gray-600 text-left">
+              <label
+                htmlFor="terms"
+                className="text-sm text-gray-600 text-left"
+              >
                 Accept Legal Agreements
               </label>
             </div>
@@ -157,7 +169,7 @@ export const Signup = () => {
               disabled={loading || !acceptedTerms}
             />
           </div>
-          
+
           <BottomWarning
             label={"Already have an account?"}
             buttonText={"Log in"}

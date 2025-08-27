@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { InputBox } from './InputBox';
+import { getApiUrl, getEndpointUrl, API_CONFIG } from '../config/api';
 
 export function RecurringTransfers() {
     const [transfers, setTransfers] = useState([]);
@@ -50,7 +51,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            const response = await axios.get(`https://wallet-end-to-end-backend.vercel.app/api/v1/user/bulk?filter=${searchTerm}`, {
+            const response = await axios.get(`${getApiUrl(API_CONFIG.ENDPOINTS.USER_BULK)}?filter=${searchTerm}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(response.data.users || []);
@@ -78,7 +79,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            const response = await axios.get('https://wallet-end-to-end-backend.vercel.app/api/v1/recurring', {
+            const response = await axios.get(getEndpointUrl('RECURRING_TRANSFERS'), {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setTransfers(response.data);
@@ -123,7 +124,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.post('https://wallet-end-to-end-backend.vercel.app/api/v1/recurring', formData, {
+            await axios.post(getEndpointUrl('RECURRING_TRANSFERS'), formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setSuccess('Recurring transfer scheduled successfully');
@@ -166,7 +167,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.patch(`https://wallet-end-to-end-backend.vercel.app/api/v1/recurring/${transferId}/status`, 
+            await axios.patch(getEndpointUrl('RECURRING_TRANSFER_STATUS', { id: transferId }), 
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` }}
             );
@@ -193,7 +194,7 @@ export function RecurringTransfers() {
                 return;
             }
             
-            await axios.delete(`https://wallet-end-to-end-backend.vercel.app/api/v1/recurring/${transferId}`, {
+            await axios.delete(`${getApiUrl(API_CONFIG.ENDPOINTS.RECURRING_TRANSFERS)}/${transferId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchTransfers();

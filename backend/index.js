@@ -5,8 +5,11 @@ const rootRouter = require("./routes/index");
 
 const app = express();
 
-// Enable CORS
-app.use(cors());
+// Enable CORS with specific origin
+app.use(cors({
+  origin: ['https://wallet-end-to-end-frontend.onrender.com', 'http://localhost:5173'],
+  credentials: true
+}));
 
 // Parse JSON and URL-encoded bodies
 app.use(express.json());

@@ -7,6 +7,7 @@ import { SubHeading } from "../components/SubHeading";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { getEndpointUrl } from "../config/api";
 
 export const Signin = () => {
   const [username, setUserName] = useState("");
@@ -18,7 +19,7 @@ export const Signin = () => {
 
   useEffect(() => {
     // Check for saved credentials
-    const savedUsername = localStorage.getItem('remembered_username');
+    const savedUsername = localStorage.getItem("remembered_username");
     if (savedUsername) {
       setUserName(savedUsername);
       setRememberMe(true);
@@ -27,13 +28,13 @@ export const Signin = () => {
 
   const validateInputs = () => {
     const newErrors = {};
-    
+
     if (!username.trim()) {
       newErrors.username = "Email is required";
     } else if (!username.includes("@")) {
       newErrors.username = "Please enter a valid email address";
     }
-    
+
     if (!password) {
       newErrors.password = "Password is required";
     }
@@ -44,44 +45,42 @@ export const Signin = () => {
 
   const handleSubmit = async () => {
     if (!validateInputs()) return;
-    
+
     try {
       setLoading(true);
-      const response = await axios.post(
-        "https://wallet-end-to-end-backend.vercel.app/api/v1/user/signin",
-        {
-          username,
-          password,
-        }
-      );
+      const response = await axios.post(getEndpointUrl('USER_SIGNIN'), {
+        username,
+        password,
+      });
 
       // Handle remember me
       if (rememberMe) {
-        localStorage.setItem('remembered_username', username);
+        localStorage.setItem("remembered_username", username);
       } else {
-        localStorage.removeItem('remembered_username');
+        localStorage.removeItem("remembered_username");
       }
 
       localStorage.setItem("token", response.data.token);
-      
+
       // Get and store user ID
-      const profileResponse = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", {
+      const profileResponse = await axios.get(getEndpointUrl('USER_PROFILE'), {
         headers: {
-          Authorization: "Bearer " + response.data.token
-        }
+          Authorization: "Bearer " + response.data.token,
+        },
       });
       localStorage.setItem("userId", profileResponse.data._id);
-      
+
       toast.success("Login successful!");
       navigate("/dashboard");
     } catch (error) {
       if (error.response?.status === 429) {
         toast.error("Too many login attempts. Please try again later.");
       } else {
-        const errorMessage = error.response?.data?.message || 
-          (error.code === 'ERR_NETWORK' ? 
-            "Unable to connect to server. Please try again." : 
-            "Invalid email or password");
+        const errorMessage =
+          error.response?.data?.message ||
+          (error.code === "ERR_NETWORK"
+            ? "Unable to connect to server. Please try again."
+            : "Invalid email or password");
         toast.error(errorMessage);
       }
     } finally {
@@ -96,7 +95,7 @@ export const Signin = () => {
         <div className="rounded-xl bg-white w-96 text-center p-6 shadow-2xl">
           <Heading label={"Sign in"} />
           <SubHeading label={"Enter your credentials to access your account"} />
-          
+
           <div className="space-y-4 mt-4">
             <div>
               <InputBox
@@ -112,7 +111,9 @@ export const Signin = () => {
                 type="email"
               />
               {errors.username && (
-                <div className="text-red-500 text-sm text-left mt-1">{errors.username}</div>
+                <div className="text-red-500 text-sm text-left mt-1">
+                  {errors.username}
+                </div>
               )}
             </div>
 
@@ -130,7 +131,9 @@ export const Signin = () => {
                 type="password"
               />
               {errors.password && (
-                <div className="text-red-500 text-sm text-left mt-1">{errors.password}</div>
+                <div className="text-red-500 text-sm text-left mt-1">
+                  {errors.password}
+                </div>
               )}
             </div>
 
@@ -143,7 +146,10 @@ export const Signin = () => {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                 />
-                <label htmlFor="remember-me" className="ml-2 text-sm text-gray-600">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 text-sm text-gray-600"
+                >
                   Remember me
                 </label>
               </div>
@@ -157,13 +163,13 @@ export const Signin = () => {
           </div>
 
           <div className="mt-6">
-            <Button 
+            <Button
               onClick={handleSubmit}
               label={loading ? "Signing in..." : "Sign in"}
               disabled={loading}
             />
           </div>
-          
+
           <BottomWarning
             label={"Don't have an account?"}
             buttonText={"Create Account"}

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { getEndpointUrl, getApiUrl } from '../config/api';
 
 const NotificationContext = createContext();
 
@@ -17,19 +18,16 @@ export const NotificationProvider = ({ children }) => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('https://wallet-end-to-end-backend.vercel.app/api/v1/notification', {
+      const response = await axios.get(getEndpointUrl('NOTIFICATIONS'), {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
-      setNotifications(Array.isArray(response.data) ? response.data : []);
-      setUnreadCount(
-        Array.isArray(response.data) 
-          ? response.data.filter(notif => !notif.read).length 
-          : 0
-      );
+      const data = Array.isArray(response.data) ? response.data : [];
+      setNotifications(data);
+      setUnreadCount(data.filter(notif => !notif.read).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('Error fetching notifications:', error.response?.data || error.message);
       setNotifications([]);
       setUnreadCount(0);
     }
@@ -37,7 +35,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await axios.patch(`https://wallet-end-to-end-backend.vercel.app/api/v1/notification/${notificationId}/read`, {}, {
+      await axios.patch(getEndpointUrl('NOTIFICATIONS_READ', { id: notificationId }), {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -50,7 +48,7 @@ export const NotificationProvider = ({ children }) => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.patch('https://wallet-end-to-end-backend.vercel.app/api/v1/notification/read-all', {}, {
+      await axios.patch(getEndpointUrl('NOTIFICATIONS_READ_ALL'), {}, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
@@ -64,23 +62,20 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (localStorage.getItem('token')) {
       fetchNotifications();
-      // Poll for new notifications every minute
       const interval = setInterval(fetchNotifications, 60000);
       return () => clearInterval(interval);
     }
   }, []);
 
-  const value = {
-    notifications,
-    unreadCount,
-    fetchNotifications,
-    markAsRead,
-    markAllAsRead
-  };
-
   return (
-    <NotificationContext.Provider value={value}>
+    <NotificationContext.Provider value={{
+      notifications,
+      unreadCount,
+      fetchNotifications,
+      markAsRead,
+      markAllAsRead
+    }}>
       {children}
     </NotificationContext.Provider>
   );
-}; 
+};

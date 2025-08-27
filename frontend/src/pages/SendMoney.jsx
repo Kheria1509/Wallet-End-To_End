@@ -2,6 +2,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { getEndpointUrl } from "../config/api";
 
 export const SendMoney = () => {
   const [searchParams] = useSearchParams();
@@ -37,7 +38,7 @@ export const SendMoney = () => {
       }
 
       await axios.post(
-        "https://wallet-end-to-end-backend.vercel.app/api/v1/account/transfer",
+        getEndpointUrl('ACCOUNT_TRANSFER'),
         {
           to: id,
           amount: parseInt(amount),
@@ -51,7 +52,7 @@ export const SendMoney = () => {
 
       // Store the current user's ID in localStorage if not already there
       if (!localStorage.getItem("userId")) {
-        const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile", {
+        const response = await axios.get(getEndpointUrl('USER_PROFILE'), {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
           },
@@ -83,7 +84,9 @@ export const SendMoney = () => {
           <div className="p-6">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                <span className="text-2xl text-white">{name[0].toUpperCase()}</span>
+                <span className="text-2xl text-white">
+                  {name[0]?.toUpperCase()}
+                </span>
               </div>
               <h3 className="text-2xl font-semibold">{name}</h3>
             </div>
@@ -109,7 +112,9 @@ export const SendMoney = () => {
                 onClick={handleTransfer}
                 disabled={loading}
                 className={`justify-center rounded-md text-sm font-medium ring-offset-background transition-colors h-10 px-4 py-2 w-full bg-green-500 text-white ${
-                  loading ? "opacity-50 cursor-not-allowed" : "hover:bg-green-600"
+                  loading
+                    ? "opacity-50 cursor-not-allowed"
+                    : "hover:bg-green-600"
                 }`}
               >
                 {loading ? "Processing..." : "Initiate Transfer"}

@@ -7,6 +7,7 @@ import { BottomWarning } from "../components/BottomWarning";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { getEndpointUrl } from "../config/api";
 
 export const ForgotPassword = () => {
     const [step, setStep] = useState(1);
@@ -24,9 +25,7 @@ export const ForgotPassword = () => {
 
         try {
             setLoading(true);
-            await axios.post("https://wallet-end-to-end-backend.vercel.app/api/v1/user/request-reset", {
-                email
-            });
+            await axios.post(getEndpointUrl('USER_REQUEST_RESET'), { email });
             toast.success("Reset code sent to your email");
             setStep(2);
         } catch (error) {
@@ -49,10 +48,10 @@ export const ForgotPassword = () => {
 
         try {
             setLoading(true);
-            await axios.post("https://wallet-end-to-end-backend.vercel.app/api/v1/user/reset-password", {
+            await axios.post(getEndpointUrl('USER_RESET_PASSWORD'), {
                 email,
                 otp,
-                newPassword
+                newPassword,
             });
             toast.success("Password reset successful!");
             navigate("/signin");
@@ -69,12 +68,12 @@ export const ForgotPassword = () => {
             <div className="flex flex-col justify-center relative z-10">
                 <div className="rounded-xl bg-white w-96 text-center p-6 shadow-2xl">
                     <Heading label={"Reset Password"} />
-                    <SubHeading 
+                    <SubHeading
                         label={
-                            step === 1 
-                                ? "Enter your email to receive a reset code" 
+                            step === 1
+                                ? "Enter your email to receive a reset code"
                                 : "Enter the code sent to your email"
-                        } 
+                        }
                     />
 
                     <div className="space-y-4 mt-4">

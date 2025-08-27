@@ -1,47 +1,39 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
-import toast from "react-hot-toast";
+import { getEndpointUrl } from "../config/api";
 
 export const Balance = () => {
-    const [balance, setBalance] = useState(0);
-    const [loading, setLoading] = useState(true);
+  const [balance, setBalance] = useState(null); // initially null
 
+  useEffect(() => {
     const fetchBalance = async () => {
-        try {
-            const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/account/balance");
-            setBalance(response.data.balance);
-        } catch (error) {
-            toast.error("Error fetching balance");
-        } finally {
-            setLoading(false);
-        }
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(
+          getEndpointUrl('ACCOUNT_BALANCE'),
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setBalance(res.data.balance); // assuming { balance: 1000 }
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      }
     };
 
-    useEffect(() => {
-        fetchBalance();
-        // Refresh balance every 15 seconds
-        const interval = setInterval(fetchBalance, 15000);
-        return () => clearInterval(interval);
-    }, []);
+    fetchBalance();
+  }, []);
 
-    return (
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex justify-between items-center">
-                <div className="text-xl font-semibold">Your Balance</div>
-                <button 
-                    onClick={fetchBalance}
-                    className="text-blue-600 hover:text-blue-700 text-sm"
-                >
-                    Refresh
-                </button>
-            </div>
-            <div className="mt-2 text-3xl font-bold text-gray-800">
-                {loading ? (
-                    <div className="text-gray-400">Loading...</div>
-                ) : (
-                    `₹${balance.toFixed(2)}`
-                )}
-            </div>
-        </div>
-    );
-}
+  return (
+    <div>
+      <h2>Wallet Balance</h2>
+      {balance !== null ? (
+        <p>Your Balance: ₹{balance.toFixed(2)}</p>
+      ) : (
+        <p>Loading balance...</p>
+      )}
+    </div>
+  );
+};
+
+export default Balance;

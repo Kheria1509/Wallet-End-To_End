@@ -4,6 +4,7 @@ import { Avatar } from "./Avatar";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { getApiUrl, API_CONFIG } from "../config/api";
 
 export const Users = () => {
     const [users, setUsers] = useState([]);
@@ -16,6 +17,7 @@ export const Users = () => {
     });
     const [loadingMore, setLoadingMore] = useState(false);
 
+
     const fetchUsers = async (page = 1, append = false) => {
         try {
             if (append) {
@@ -23,15 +25,20 @@ export const Users = () => {
             } else {
                 setLoading(true);
             }
-            
+
             const response = await axios.get(
-                `https://wallet-end-to-end-backend.vercel.app/api/v1/user/bulk?filter=${filter}&page=${page}&limit=10`
+                `${getApiUrl(API_CONFIG.ENDPOINTS.USER_BULK)}?filter=${filter}&page=${page}&limit=10`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`
+                    }
+                }
             );
-            
+
             setUsers(prev => append ? [...prev, ...response.data.users] : response.data.users);
             setPagination(response.data.pagination);
         } catch (error) {
-            toast.error("Error fetching users");
+            toast.error(error.response?.data?.message || "Error fetching users");
         } finally {
             if (append) {
                 setLoadingMore(false);
@@ -45,7 +52,6 @@ export const Users = () => {
         const timeoutId = setTimeout(() => {
             fetchUsers(1, false);
         }, 300);
-
         return () => clearTimeout(timeoutId);
     }, [filter]);
 

@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getEndpointUrl } from '../config/api';
 
 const fetchTransactionsForExport = async (filters = {}) => {
     try {
@@ -11,7 +12,7 @@ const fetchTransactionsForExport = async (filters = {}) => {
         if (filters.minAmount) params.append('minAmount', filters.minAmount);
         if (filters.maxAmount) params.append('maxAmount', filters.maxAmount);
 
-        const response = await axios.get(`https://wallet-end-to-end-backend.vercel.app/api/v1/account/transactions/export?${params.toString()}`, {
+        const response = await axios.get(`${getEndpointUrl('ACCOUNT_TRANSACTIONS_EXPORT')}?${params.toString()}`, {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('token')}`
             }

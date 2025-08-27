@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Avatar } from "./Avatar";
 import { NotificationBell } from "./NotificationBell";
 import axios from "axios";
+import { getEndpointUrl } from "../config/api";
 
 export const Appbar = () => {
     const navigate = useNavigate();
@@ -15,18 +16,25 @@ export const Appbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef(null);
 
-    useEffect(() => {
-        const fetchUserProfile = async () => {
-            try {
-                const response = await axios.get("https://wallet-end-to-end-backend.vercel.app/api/v1/user/profile");
-                setProfile(response.data);
-            } catch (error) {
-                console.error("Error fetching user profile:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchUserProfile();
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+        try {
+            const token = localStorage.getItem("token");
+
+            const response = await axios.get(getEndpointUrl('USER_PROFILE'), {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            setProfile(response.data);
+        } catch (error) {
+            console.error("Error fetching user profile:", error);
+            setProfile({ firstName: "Guest", lastName: "", avatar: "" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    fetchUserProfile();
 
         // Close menu when clicking outside
         const handleClickOutside = (event) => {
