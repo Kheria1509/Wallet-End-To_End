@@ -52,6 +52,24 @@
         display: none;
       }
     </style>
+    
+    <!-- SPA Routing Fallback Script -->
+    <script>
+      // Handle direct access to /index.html
+      if (window.location.pathname === '/index.html') {
+        // Get the intended route from referrer or default to root
+        const intendedPath = sessionStorage.getItem('intendedRoute') || '/';
+        sessionStorage.removeItem('intendedRoute');
+        window.history.replaceState(null, '', intendedPath);
+      }
+      
+      // Store current path before page reload
+      window.addEventListener('beforeunload', function() {
+        if (window.location.pathname !== '/index.html') {
+          sessionStorage.setItem('intendedRoute', window.location.pathname + window.location.search);
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root">

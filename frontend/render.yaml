@@ -18,6 +18,10 @@ services:
         name: Cache-Control
         value: public, max-age=0, must-revalidate
     routes:
+      - type: redirect
+        source: /index.html
+        destination: /
+        status: 301
       - type: rewrite
         source: /*
         destination: /index.html

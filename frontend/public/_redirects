@@ -1,2 +1,18 @@
-/*    /index.html   200
+# Redirect index.html to root
 /index.html    /    301
+
+# Handle specific routes
+/signin        /index.html   200
+/signup        /index.html   200
+/dashboard     /index.html   200
+/profile       /index.html   200
+/send          /index.html   200
+/recurring     /index.html   200
+/forgot-password /index.html  200
+
+# Handle assets
+/assets/*      /assets/:splat  200
+/vite.svg      /vite.svg       200
+
+# Catch-all fallback
+/*             /index.html     200
