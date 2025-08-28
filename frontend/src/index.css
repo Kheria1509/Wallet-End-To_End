@@ -13,6 +13,19 @@
     animation: moveBackground 30s linear infinite; /* smooth drifting */
     backdrop-filter: blur(2px); /* subtle blur if over any bg */
   }
+
+  .to-purple-100 {
+  --tw-gradient-to: unset !important;
+}
+
+.from-blue-100 {
+  --tw-gradient-from: unset !important;
+}
+
+#root {
+  display: block !important;  /* or inline / grid, depending on what you need */
+}
+
   
   /* Keyframes for slow movement */
   @keyframes moveBackground {

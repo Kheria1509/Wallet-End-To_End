@@ -1,0 +1,83 @@
+# Docker Compose Override for Local Development
+# This file extends docker-compose.yml with development-specific configurations
+# It's automatically loaded by Docker Compose when running 'docker-compose up'
+
+version: '3.8'
+
+services:
+  # Development overrides for backend service
+  backend:
+    # Enable development features
+    environment:
+      # Override with more verbose logging in development
+      LOG_LEVEL: debug
+      
+      # Enable debug mode for better error messages
+      DEBUG: "app:*"
+    
+    # Additional development volumes
+    volumes:
+      # Mount logs directory for easier access
+      - ./logs:/app/logs
+    
+    # Development command with nodemon for hot reloading
+    command: ["npm", "run", "dev"]
+    
+    # Development port mapping (if you want different ports)
+    # ports:
+    #   - "3001:3000"  # Map to different host port if needed
+
+  # Development overrides for frontend service  
+  frontend:
+    environment:
+      # Development-specific API URL
+      VITE_API_URL: http://localhost:3000
+      
+      # Enable development features
+      VITE_DEV_MODE: true
+    
+    # Additional development volumes
+    volumes:
+      # Mount public directory for static assets development
+      - ./frontend/public:/app/public
+
+  # Development overrides for MongoDB
+  mongodb:
+    # Expose MongoDB port only in development
+    ports:
+      - "27017:27017"
+    
+    # Development logging
+    command: --auth --bind_ip_all --logpath /var/log/mongodb/mongod.log --logappend
+    
+    # Additional development volumes
+    volumes:
+      # Mount logs directory
+      - ./logs/mongodb:/var/log/mongodb
+
+# Optional: Add development services
+# Uncomment services below for additional development tools
+
+  # MongoDB Admin Interface (uncomment to enable)
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: wallet-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: walletpass123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:walletpass123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+    networks:
+      - wallet-network
+    depends_on:
+      - mongodb
+
+# Create additional development networks if needed
+# networks:
+#   development:
+#     driver: bridge

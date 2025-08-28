@@ -1,0 +1,260 @@
+# Docker Compose configuration for Wallet Application
+# This file orchestrates the entire application stack including:
+# - Frontend (React + Vite)
+# - Backend (Node.js + Express)
+# - Database (MongoDB)
+# - Development tools and networking
+
+version: '3.8'
+
+# Define custom networks for service communication
+networks:
+  wallet-network:
+    driver: bridge
+    # Custom network allows services to communicate using service names
+    # Provides isolation from other Docker applications
+
+# Define persistent data volumes
+volumes:
+  mongodb-data:
+    driver: local
+    # Persistent storage for MongoDB data
+    # Data survives container restarts and recreations
+  
+  node-modules-backend:
+    driver: local
+    # Cache for backend node_modules to speed up development builds
+    
+  node-modules-frontend:
+    driver: local
+    # Cache for frontend node_modules to speed up development builds
+
+services:
+  # MongoDB Database Service
+  mongodb:
+    image: mongo:7.0
+    # Using MongoDB 7.0 for latest features and security updates
+    
+    container_name: wallet-mongodb
+    # Fixed container name for easier reference and debugging
+    
+    restart: unless-stopped
+    # Automatically restart container unless explicitly stopped
+    
+    ports:
+      - "27017:27017"
+      # Expose MongoDB on default port for external connections (development only)
+    
+    environment:
+      # MongoDB root credentials for administrative access
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: walletpass123
+      MONGO_INITDB_DATABASE: wallet_db
+      # Initial database name that will be created
+    
+    volumes:
+      - mongodb-data:/data/db
+      # Persist MongoDB data between container restarts
+      
+      - ./docker/mongodb-init:/docker-entrypoint-initdb.d:ro
+      # Mount initialization scripts (if any) as read-only
+    
+    networks:
+      - wallet-network
+      # Connect to custom network for service-to-service communication
+    
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand('ping').ok"]
+      # Health check command to verify MongoDB is responsive
+      interval: 30s
+      # Check every 30 seconds
+      timeout: 10s
+      # Wait up to 10 seconds for response
+      retries: 3
+      # Retry 3 times before marking as unhealthy
+      start_period: 40s
+      # Wait 40 seconds before starting health checks (MongoDB startup time)
+    
+    command: --auth --bind_ip_all
+    # Enable authentication and bind to all network interfaces
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      # Build context is the backend directory
+      dockerfile: Dockerfile
+      # Use custom Dockerfile for backend
+      target: development
+      # Use development stage from multi-stage Dockerfile
+    
+    container_name: wallet-backend
+    # Fixed container name for easier debugging and logs access
+    
+    restart: unless-stopped
+    # Auto-restart policy for production reliability
+    
+    ports:
+      - "3000:3000"
+      # Expose backend API on port 3000
+    
+    environment:
+      # Runtime environment variables for backend service
+      NODE_ENV: development
+      # Set to development for detailed error messages and debugging
+      
+      PORT: 3000
+      # Backend server port (matches EXPOSE directive)
+      
+      MONGODB_URI: mongodb://admin:walletpass123@mongodb:27017/wallet_db?authSource=admin
+      # MongoDB connection string using service name 'mongodb'
+      # Includes authentication credentials and database name
+      
+      JWT_SECRET: your-super-secret-jwt-key-change-this-in-production
+      # JWT signing secret - MUST be changed in production
+      
+      JWT_EXPIRY: 24h
+      # JWT token expiration time
+      
+      MAX_LOGIN_ATTEMPTS: 5
+      # Rate limiting for login attempts
+      
+      LOGIN_TIMEOUT: 900000
+      # Login timeout in milliseconds (15 minutes)
+    
+    volumes:
+      - ./backend:/app
+      # Mount backend source code for hot reloading during development
+      
+      - node-modules-backend:/app/node_modules
+      # Use named volume for node_modules to avoid conflicts between host and container
+      
+      - /app/node_modules
+      # Anonymous volume to prevent host node_modules from overriding container's
+    
+    networks:
+      - wallet-network
+      # Connect to custom network to communicate with MongoDB
+    
+    depends_on:
+      mongodb:
+        condition: service_healthy
+        # Wait for MongoDB to be healthy before starting backend
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      # Health check using curl to verify API responsiveness
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      # Wait longer for backend to start (needs to connect to DB)
+    
+    develop:
+      watch:
+        # Development mode file watching for hot reload
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - node_modules/
+            # Don't sync node_modules to avoid conflicts
+        - action: rebuild
+          path: ./backend/package.json
+          # Rebuild container when package.json changes
+
+  # Frontend Web Application Service  
+  frontend:
+    build:
+      context: ./frontend
+      # Build context is the frontend directory
+      dockerfile: Dockerfile
+      # Use custom Dockerfile for frontend
+      target: development
+      # Use development stage for hot reloading
+      args:
+        - VITE_API_URL=http://localhost:3000
+        # Pass API URL as build argument for Vite
+    
+    container_name: wallet-frontend
+    # Fixed container name for easier access
+    
+    restart: unless-stopped
+    # Auto-restart policy
+    
+    ports:
+      - "5173:5173"
+      # Expose Vite dev server on default port
+    
+    environment:
+      # Runtime environment variables for frontend
+      VITE_API_URL: http://localhost:3000
+      # API endpoint URL (points to backend service)
+      
+      VITE_API_TIMEOUT: 30000
+      # API request timeout in milliseconds
+      
+      VITE_ENABLE_MOCK_API: false
+      # Disable mock API in development
+    
+    volumes:
+      - ./frontend:/app
+      # Mount frontend source code for development
+      
+      - node-modules-frontend:/app/node_modules
+      # Named volume for frontend node_modules
+      
+      - /app/node_modules
+      # Anonymous volume to prevent host conflicts
+    
+    networks:
+      - wallet-network
+      # Connect to network (though frontend mainly communicates via browser)
+    
+    depends_on:
+      - backend
+      # Ensure backend is running before starting frontend
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      # Health check for Vite dev server
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    
+    develop:
+      watch:
+        # Development mode file watching
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+            - dist/
+            # Don't sync build output
+        - action: rebuild
+          path: ./frontend/package.json
+          # Rebuild when dependencies change
+
+  # Development Tools Container (Optional)
+  # Uncomment the following service for development utilities
+  # devtools:
+  #   image: mongo-express:1.0.2
+  #   container_name: wallet-mongo-express
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8081:8081"
+  #   environment:
+  #     ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+  #     ME_CONFIG_MONGODB_ADMINPASSWORD: walletpass123
+  #     ME_CONFIG_MONGODB_URL: mongodb://admin:walletpass123@mongodb:27017/
+  #     ME_CONFIG_BASICAUTH_USERNAME: admin
+  #     ME_CONFIG_BASICAUTH_PASSWORD: admin
+  #   networks:
+  #     - wallet-network
+  #   depends_on:
+  #     - mongodb
+
+# Development-specific compose override
+# Create docker-compose.override.yml for local customizations
