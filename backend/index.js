@@ -1,9 +1,13 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
+const mongoose = require('mongoose');
 const rootRouter = require("./routes/index");
 
 const app = express();
+
+// Import database connection (this will initialize the connection)
+require('./db');
 
 // Enable CORS with specific origin
 app.use(cors({

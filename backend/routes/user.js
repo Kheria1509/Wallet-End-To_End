@@ -94,7 +94,16 @@ router.post("/signin", async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ username });
+    // Check database connection before proceeding
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState !== 1) {
+      console.error('Database not connected, attempting to reconnect...');
+      return res.status(503).json({
+        message: "Database connection unavailable. Please try again.",
+      });
+    }
+
+    const user = await User.findOne({ username }).maxTimeMS(5000); // 5 second timeout
 
     if (!user) {
       return res.status(401).json({
@@ -116,6 +125,14 @@ router.post("/signin", async (req, res) => {
     });
   } catch (error) {
     console.error("Signin error:", error);
+    
+    // Handle specific MongoDB errors
+    if (error.name === 'MongoNetworkTimeoutError' || error.name === 'MongooseError') {
+      return res.status(503).json({
+        message: "Database connection timeout. Please try again.",
+      });
+    }
+    
     res.status(500).json({
       message: "Error during signin",
     });
