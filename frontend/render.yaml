@@ -5,23 +5,52 @@ services:
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
     headers:
-      - path: /*
+      # Security headers for HTML files
+      - path: /
         name: X-Frame-Options
         value: DENY
-      - path: /*
+      - path: /
         name: X-Content-Type-Options
         value: nosniff
+      - path: /
+        name: X-XSS-Protection
+        value: "1; mode=block"
+      - path: /
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      
+      # Cache headers for static assets
       - path: /assets/*
         name: Cache-Control
         value: public, max-age=31536000, immutable
+      - path: /vite.svg
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+        
+      # No cache for index.html to ensure updates are loaded
       - path: /index.html
         name: Cache-Control
         value: public, max-age=0, must-revalidate
+        
+    # Route configuration for SPA
     routes:
+      # Redirect direct index.html access to root
       - type: redirect
         source: /index.html
         destination: /
         status: 301
+        
+      # Serve static assets directly (DO NOT rewrite these)
       - type: rewrite
-        source: /*
+        source: /assets/(.*)
+        destination: /assets/$1
+        
+      # Serve favicon and other root assets
+      - type: rewrite
+        source: /vite.svg
+        destination: /vite.svg
+        
+      # Handle SPA routes - only rewrite non-asset requests
+      - type: rewrite
+        source: /(?!assets/)(?!vite\.svg)(?!.*\.).*
         destination: /index.html
